@@ -1,0 +1,14 @@
+<section id="volatility">
+    <div class="section-title">
+        <h3>Volatility <small>volatility outputs</small></h3>
+    </div>
+		{% for plugin in results.volatility %}
+        <h4><a href="javascript:showHide('{{plugin}}');">{{plugin}}</a></h4>
+		<div class="well" id="{{plugin}}" style="display: none;">
+			{% for line in results.volatility[plugin] %}
+				<span class="mono">{{line.replace(' ', '&nbsp;')}}</span><br>
+			{% endfor %}
+		</div>
+        
+		{% endfor %}
+</section>
