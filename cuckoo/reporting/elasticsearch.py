@@ -95,13 +95,14 @@ class ElasticSearch(Report):
         try:
             # drop to a compressed json file instead
             # make sure temp dir exists
+            from bson import json_util
             temp_dir = os.path.join("/", "tmp", "cuckoo_json_dump")
             if not os.path.exists(temp_dir):
                 os.mkdir(temp_dir)
             output_file = os.path.join(temp_dir, "{}.json.bz2".format(self.task["id"]))
             from bz2 import BZ2File
             with BZ2File(output_file, 'wb') as f:
-                f.write(json.dumps(base_document))
+                f.write(json.dumps(base_document, default=json_util.default))
             # stub out the actual index
             if False:
                 elastic.client.index(
