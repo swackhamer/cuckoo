@@ -93,11 +93,22 @@ class ElasticSearch(Report):
         base_document.update(obj)
 
         try:
-            elastic.client.index(
-                index=self.dated_index,
-                doc_type=self.report_type,
-                body=base_document
-            )
+            # drop to a compressed json file instead
+            # make sure temp dir exists
+            temp_dir = os.path.join("/", "tmp", "cuckoo_json_dump")
+            if not os.path.exists(temp_dir):
+                os.mkdir(temp_dir)
+            output_file = os.path.join(temp_dir, "{}.json.bz2".format(self.task["id"]))
+            from bz2 import BZ2File
+            with BZ2File(output_file, 'wb') as f:
+                f.write(json.dumps(base_document))
+            # stub out the actual index
+            if False:
+                elastic.client.index(
+                    index=self.dated_index,
+                    doc_type=self.report_type,
+                    body=base_document
+                )
         except Exception as e:
             raise CuckooReportError(
                 "Failed to save results in ElasticSearch for "
