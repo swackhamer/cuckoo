@@ -21,6 +21,7 @@ logging.getLogger("elasticsearch.trace").setLevel(logging.WARNING)
 
 log = logging.getLogger(__name__)
 
+
 class ElasticSearch(Report):
     """Stores report in Elasticsearch."""
 
@@ -53,9 +54,20 @@ class ElasticSearch(Report):
 
     @classmethod
     def apply_template(cls):
-        template_path = cwd("elasticsearch", "template.json")
-        if not os.path.exists(template_path):
-            return False
+        # check elasticsearch version
+        es_version = elastic.info().get("version", {}).get('number', 'Invalid ES info schema')
+        # get the version 5 template
+        if es_version.startswith('5') or es_version.startswith('6'):
+            template_path = cwd("elasticsearch", "template-es5.json")
+            if not os.path.exists(template_path):
+                return False
+        elif es_version.startswith('2'):
+            template_path = cwd("elasticsearch", "template-es2.json")
+            if not os.path.exists(template_path):
+                return False
+        else:
+            raise CuckooReportError('Invalid Elasticsearch version %s unable to start the Elasticsearch'
+                                    'reporting module' % es_version)
 
         try:
             template = json.loads(open(template_path, "rb").read())
