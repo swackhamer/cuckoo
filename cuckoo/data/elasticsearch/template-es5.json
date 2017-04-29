@@ -6,7 +6,7 @@
       "number_of_shards": "1",
       "codec": "best_compression",
       "number_of_replicas": "0",
-      "refresh_interval": "30s"
+      "refresh_interval": "60s"
     }
   },
   "mappings": {
@@ -16,7 +16,6 @@
         {
           "not_analyzed": {
             "mapping": {
-              "index": "not_analyzed",
               "type": "keyword",
               "ignore_above": 32766
             },
@@ -27,8 +26,7 @@
         {
           "signatures": {
             "mapping": {
-              "index": "not_analyzed",
-              "type": "string",
+              "type": "keyword",
               "ignore_above": 32766
             },
             "path_match": "signatures.marks.call.arguments.*",
@@ -36,10 +34,32 @@
             "match": "*",
             "match_mapping_type": "long"
           }
+        },
+        {
+          "target_yara": {
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 32766
+            },
+            "path_match": "target.file.yara.*",
+            "match": "*",
+            "match_mapping_type": "*"
+          }
+        },
+        {
+          "procmemory_yara": {
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 32766
+            },
+            "path_match": "procmemory.extracted.yara.*",
+            "match": "*",
+            "match_mapping_type": "*"
+          }
         }
       ],
       "properties": {
-        "report_time": {
+        "@timestamp": {
           "format": "epoch_second",
           "type": "date"
         },
@@ -61,7 +81,6 @@
         {
           "not_analyzed": {
             "mapping": {
-              "index": "not_analyzed",
               "type": "keyword",
               "ignore_above": 32766
             },
@@ -72,7 +91,6 @@
         {
           "call_arguments": {
             "mapping": {
-              "index": "not_analyzed",
               "type": "keyword",
               "ignore_above": 32766
             },
@@ -83,7 +101,7 @@
         }
       ],
       "properties": {
-        "report_time": {
+        "@timestamp": {
           "format": "epoch_second",
           "type": "date"
         }
@@ -93,11 +111,10 @@
       "date_detection": false,
       "dynamic_templates": [
         {
-          "notanalyzed": {
+          "not_analyzed": {
             "mapping": {
-              "index": "not_analyzed",
               "type": "keyword",
-              "doc_values": "True"
+              "ignore_above": 32766
             },
             "match_mapping_type": "string",
             "match": "*"

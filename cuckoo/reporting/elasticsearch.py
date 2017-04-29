@@ -93,7 +93,7 @@ class ElasticSearch(Report):
         # Gets precached report time and the task_id.
         header = {
             "task_id": self.task["id"],
-            "report_time": self.report_time,
+            "@timestamp": self.report_time,
             "report_id": self.task["id"]
         }
         return header
