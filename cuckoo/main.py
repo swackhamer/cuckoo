@@ -17,7 +17,7 @@ from cuckoo.apps import (
     fetch_community, submit_tasks, process_tasks, process_task_range,
     cuckoo_rooter, cuckoo_api, cuckoo_distributed, cuckoo_distributed_instance,
     cuckoo_clean, cuckoo_dnsserve, cuckoo_machine, import_cuckoo,
-    migrate_database
+    migrate_database, migrate_cwd
 )
 from cuckoo.common.config import read_kv_conf
 from cuckoo.common.exceptions import CuckooCriticalError
@@ -101,19 +101,19 @@ def cuckoo_init(level, ctx, cfg=None):
             "along the correct directory?"
         )
 
-    # Determine if any CWD updates are required.
-    current = open(cwd(".cwd"), "rb").read()
-    latest = open(cwd(".cwd", private=True), "rb").read()
-    if current != latest:
-        pass
+    init_console_logging(level)
 
     check_configs()
     check_version()
 
-    if ctx.log:
-        init_logging(level)
-    else:
-        init_console_logging(level)
+    ctx.log and init_logging(level)
+
+    # Determine if any CWD updates are required and if so, do them.
+    current = open(cwd(".cwd"), "rb").read().strip()
+    latest = open(cwd(".cwd", private=True), "rb").read().strip()
+    if current != latest:
+        migrate_cwd()
+        open(cwd(".cwd"), "wb").write(latest)
 
     Database().connect()
 
@@ -222,10 +222,13 @@ def init(ctx, conf):
 @click.option("-f", "--force", is_flag=True, help="Overwrite existing files")
 @click.option("-b", "--branch", default="master", help="Specify a different community branch rather than master")
 @click.option("--file", "--filepath", type=click.Path(exists=True), help="Specify a local copy of a community .tar.gz file")
-def community(force, branch, filepath):
+@click.pass_context
+def community(ctx, force, branch, filepath):
     """Fetch supplies from the Cuckoo Community."""
+    init_console_logging(level=ctx.parent.level)
     try:
         fetch_community(force=force, branch=branch, filepath=filepath)
+        log.info("Finished fetching & extracting the community files!")
     except KeyboardInterrupt:
         print(yellow("Aborting fetching of the Cuckoo Community resources.."))
 
